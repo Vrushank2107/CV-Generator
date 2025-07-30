@@ -153,81 +153,90 @@ const initialReferences: Reference[] = [
   { name: '', jobTitle: '', email: '', phone: '', relation: '' },
 ];
 
-const createPDFStyles = (template: string, colors: { color: string; bg: string }) =>
-  StyleSheet.create({
-    page: {
-      padding: 30,
-      fontFamily: 'Helvetica',
-      backgroundColor: template === 'dark' ? '#1e293b' : 'white',
-    },
-    container: {
-      flexDirection: 'row',
-    },
-    sidebar: {
-      width: 180,
-      backgroundColor: colors.bg,
-      padding: 20,
-    },
-    mainContent: {
-      flex: 1,
-      padding: 20,
-    },
-    profileImage: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginBottom: 10,
-      alignSelf: 'center',
-    },
-    name: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.color,
-      marginBottom: 5,
-      textAlign: 'center',
-    },
-    contact: {
-      fontSize: 10,
-      color: '#4b5563',
-      textAlign: 'center',
-    },
-    section: {
-      marginBottom: 15,
-    },
-    sectionTitle: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      marginBottom: 6,
-      color: colors.color,
-    },
-    bullet: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginBottom: 4,
-    },
-    bulletPoint: {
-      marginRight: 5,
-      fontSize: 10,
-      color: colors.color,
-    },
-    bulletText: {
-      fontSize: 10,
-      color: '#4b5563',
-      flex: 1,
-      flexWrap: 'wrap',
-    },
-    tag: {
-      backgroundColor: colors.bg,
-      color: colors.color,
-      fontSize: 9,
-      paddingHorizontal: 4,
-      paddingVertical: 2,
-      marginRight: 4,
-      marginBottom: 4,
-      borderRadius: 3,
-    },
-  });
-
+const createPDFStyles = (template: string, colors: { color: string; bg: string }) => StyleSheet.create({
+  page: {
+    padding: 30,
+    fontFamily: 'Helvetica',
+    backgroundColor: template === 'dark' ? '#1e293b' : 'white',
+  },
+  container: {
+    flexDirection: 'row',
+    // Removed flexWrap to prevent wrapping issues
+    // flexWrap: 'wrap',
+    // Removed gap as it may cause issues in PDF rendering
+    // gap: 10,
+  },
+  sidebar: {
+    width: '30%',
+    backgroundColor: colors.bg,
+    padding: 20,
+    borderRadius: template === 'modern' ? 8 : 0,
+    overflow: 'hidden',
+  },
+  mainContent: {
+    width: '70%',
+    padding: 20,
+    overflow: 'hidden',
+  },
+  header: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: template === 'classic' ? 0 : 60,
+    marginBottom: 15,
+    alignSelf: 'center',
+    border: `2px solid ${colors.color}`,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: template === 'dark' ? 'white' : colors.color,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  contact: {
+    fontSize: 10,
+    marginBottom: 3,
+    color: template === 'dark' ? '#cbd5e1' : '#4b5563',
+  },
+  section: {
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: colors.color,
+    borderBottom: template === 'classic' ? `1px solid ${colors.color}` : 'none',
+    paddingBottom: 3,
+  },
+  bullet: {
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  bulletPoint: {
+    width: 10,
+    color: colors.color,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 10,
+    color: template === 'dark' ? '#cbd5e1' : '#4b5563',
+    marginBottom: 3, // Added marginBottom to prevent overlap
+  },
+  tag: {
+    backgroundColor: colors.bg,
+    color: colors.color,
+    padding: '4 8',
+    marginRight: 4,
+    marginBottom: 4,
+    fontSize: 9,
+    borderRadius: 4,
+  },
+});
 
 // Update the CVDocument component
 const CVDocument = ({ 
@@ -245,111 +254,186 @@ const CVDocument = ({
 }) => {
   const styles = createPDFStyles(template, colors);
 
-  return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.container}>
-          {/* Sidebar */}
-          <View style={styles.sidebar}>
-            {personalInfo.photo && (
-              <Image
-                src={personalInfo.photo}
-                style={styles.profileImage}
-              />
-            )}
-            <Text style={styles.name}>{personalInfo.fullName}</Text>
-            <Text style={styles.contact}>{personalInfo.email}</Text>
-            <Text style={styles.contact}>{personalInfo.phone}</Text>
-            <Text style={styles.contact}>{personalInfo.address}</Text>
-
-            {/* Skills Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Skills</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                {skills.technical.map((skill, index) => (
-                  <Text key={index} style={styles.tag}>{skill}</Text>
-                ))}
+  switch (template) {
+    case 'classic':
+      return (
+        <Document>
+          <Page size="A4" style={{ ...styles.page, padding: 30 }}>
+            {/* Header */}
+            <View style={{ flexDirection: 'row', marginBottom: 20, borderBottom: `2px solid ${colors.color}`, paddingBottom: 10 }}>
+              {personalInfo.photo && (
+                <Image 
+                  src={personalInfo.photo} 
+                  style={{ width: 100, height: 100, marginRight: 20, objectFit: 'cover' }} 
+                />
+              )}
+              <View>
+                <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.color }}>{personalInfo.fullName}</Text>
+                <Text style={{ fontSize: 12, color: '#4b5563' }}>{personalInfo.email}</Text>
+                <Text style={{ fontSize: 12, color: '#4b5563' }}>{personalInfo.phone}</Text>
+                <Text style={{ fontSize: 12, color: '#4b5563' }}>{personalInfo.address}</Text>
               </View>
             </View>
 
-            {/* Languages Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Languages</Text>
-              {languages.map((lang, index) => (
-                <View key={index} style={styles.bullet}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.bulletText}>
-                    {lang.name} - {lang.proficiency}
-                  </Text>
+            {/* Two Column Layout */}
+            <View style={{ flexDirection: 'row', gap: 20 }}>
+              {/* Left Column */}
+              <View style={{ width: '60%' }}>
+                <View style={{ marginBottom: 15 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.color, marginBottom: 5 }}>Summary</Text>
+                  <Text style={{ fontSize: 12, color: '#4b5563' }}>{personalInfo.summary}</Text>
                 </View>
-              ))}
-            </View>
-          </View>
 
-          {/* Main Content */}
-          <View style={styles.mainContent}>
-            {/* Projects Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Projects</Text>
-              {projects.map((project, index) => (
-                <View key={index} style={{ marginBottom: 10 }}>
-                  <Text style={{ ...styles.bulletText, fontWeight: 'bold' }}>{project.title}</Text>
-                  <Text style={styles.bulletText}>{project.description}</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                    {project.technologies.map((tech, techIndex) => (
-                      <Text key={techIndex} style={styles.tag}>{tech}</Text>
-                    ))}
-                  </View>
-                  {project.github && (
-                    <Text style={{ ...styles.bulletText, color: 'blue' }}>
-                      GitHub: {project.github}
-                    </Text>
-                  )}
-                  {project.demo && (
-                    <Text style={{ ...styles.bulletText, color: 'blue' }}>
-                      Demo: {project.demo}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-
-            {/* Experience Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Experience</Text>
-              {experience.map((exp, index) => (
-                <View key={index} style={{ marginBottom: 10 }}>
-                  <Text style={{ ...styles.bulletText, fontWeight: 'bold' }}>{exp.jobTitle}</Text>
-                  <Text style={styles.bulletText}>{exp.company} | {exp.location}</Text>
-                  <Text style={{ ...styles.bulletText, fontStyle: 'italic' }}>{exp.from} - {exp.to}</Text>
-                  {exp.responsibilities.map((resp, idx) => (
-                    <View key={idx} style={styles.bullet}>
-                      <Text style={styles.bulletPoint}>•</Text>
-                      <Text style={styles.bulletText}>{resp}</Text>
+                <View style={{ marginBottom: 15 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.color, marginBottom: 5 }}>Experience</Text>
+                  {experience.map((exp, index) => (
+                    <View key={index} style={{ marginBottom: 10 }}>
+                      <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{exp.jobTitle}</Text>
+                      <Text style={{ fontSize: 12, color: '#4b5563' }}>{exp.company} | {exp.location}</Text>
+                      <Text style={{ fontSize: 12, color: '#4b5563', fontStyle: 'italic' }}>{exp.from} - {exp.to}</Text>
+                      {exp.responsibilities.map((resp, idx) => (
+                        <View key={idx} style={{ flexDirection: 'row', marginBottom: 2, paddingLeft: 10 }}>
+                          <Text style={{ color: colors.color, marginRight: 5 }}>•</Text>
+                          <Text style={{ fontSize: 10, color: '#4b5563', flex: 1 }}>{resp}</Text>
+                        </View>
+                      ))}
                     </View>
                   ))}
                 </View>
-              ))}
-            </View>
+              </View>
 
-            {/* Education Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Education</Text>
-              {education.map((edu, index) => (
-                <View key={index} style={{ marginBottom: 10 }}>
-                  <Text style={{ ...styles.bulletText, fontWeight: 'bold' }}>{edu.degree}</Text>
-                  <Text style={styles.bulletText}>{edu.college}, {edu.location}</Text>
-                  <Text style={styles.bulletText}>{edu.start} - {edu.end} | CGPA: {edu.cgpa}</Text>
+              {/* Right Column */}
+              <View style={{ width: '40%' }}>
+                <View style={{ marginBottom: 15 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.color, marginBottom: 5 }}>Skills</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                    {skills.technical.map((skill, index) => (
+                      <Text key={index} style={{ fontSize: 10, backgroundColor: colors.bg, color: colors.color, padding: '3 6', borderRadius: 3, marginBottom: 4 }}>
+                        {skill}
+                      </Text>
+                    ))}
+                  </View>
                 </View>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Page>
-    </Document>
-  );
-};
 
+                <View style={{ marginBottom: 15 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.color, marginBottom: 5 }}>Education</Text>
+                  {education.map((edu, index) => (
+                    <View key={index} style={{ marginBottom: 8 }}>
+                      <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{edu.degree}</Text>
+                      <Text style={{ fontSize: 12, color: '#4b5563' }}>{edu.college}</Text>
+                      <Text style={{ fontSize: 12, color: '#4b5563' }}>{edu.start} - {edu.end}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </Page>
+        </Document>
+      );
+
+    case 'dark':
+      return null;
+
+    default:
+      return (
+        <Document>
+          <Page size="A4" style={styles.page}>
+            <View style={styles.container}>
+              {/* Sidebar */}
+              <View style={styles.sidebar}>
+                {personalInfo.photo && (
+                  <Image src={personalInfo.photo} style={styles.profileImage} />
+                )}
+                <Text style={styles.name}>{personalInfo.fullName}</Text>
+                <Text style={styles.contact}>{personalInfo.email}</Text>
+                <Text style={styles.contact}>{personalInfo.phone}</Text>
+                <Text style={styles.contact}>{personalInfo.address}</Text>
+                
+                {/* Skills Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Skills</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                    {skills.technical.map((skill, index) => (
+                      <Text key={index} style={styles.tag}>{skill}</Text>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Languages Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Languages</Text>
+                  {languages.map((lang, index) => (
+                    <Text key={index} style={styles.bulletText}>
+                      {lang.name} - {lang.proficiency}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+
+              {/* Main Content */}
+              <View style={styles.mainContent}>
+                {/* Projects Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Projects</Text>
+                  {projects.map((project, index) => (
+                    <View key={index} style={{ marginBottom: 15 }}>
+                      <Text style={{ ...styles.bulletText, fontWeight: 'bold', marginBottom: 6, lineHeight: 1.3, width: '100%', flexWrap: 'wrap' }}>{project.title}</Text>
+                      <Text style={{ ...styles.bulletText, marginBottom: 6, lineHeight: 1.3, width: '100%', flexWrap: 'wrap' }}>{project.description}</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+                        {project.technologies.map((tech, techIndex) => (
+                          <Text key={techIndex} style={styles.tag}>{tech}</Text>
+                        ))}
+                      </View>
+                      {project.github && (
+                        <Text style={{ ...styles.bulletText, color: 'blue', marginBottom: 6, lineHeight: 1.3, width: '100%', flexWrap: 'wrap' }}>
+                          GitHub: {project.github}
+                        </Text>
+                      )}
+                      {project.demo && (
+                        <Text style={{ ...styles.bulletText, color: 'blue', marginBottom: 6, lineHeight: 1.3, width: '100%', flexWrap: 'wrap' }}>
+                          Demo: {project.demo}
+                        </Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+
+                {/* Experience Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Experience</Text>
+                  {experience.map((exp, index) => (
+                    <View key={index} style={{ marginBottom: 10 }}>
+                      <Text style={{ ...styles.bulletText, fontWeight: 'bold', marginBottom: 2 }}>{exp.jobTitle}</Text>
+                      <Text style={{ ...styles.bulletText, marginBottom: 2 }}>{exp.company} | {exp.location}</Text>
+                      <Text style={{ ...styles.bulletText, fontStyle: 'italic', marginBottom: 4 }}>{exp.from} - {exp.to}</Text>
+                      {exp.responsibilities.map((resp, idx) => (
+                        <View key={idx} style={styles.bullet}>
+                          <Text style={styles.bulletPoint}>•</Text>
+                          <Text style={styles.bulletText}>{resp}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+
+                {/* Education Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Education</Text>
+                  {education.map((edu, index) => (
+                    <View key={index} style={{ marginBottom: 12 }}>
+                      <Text style={{ ...styles.bulletText, fontWeight: 'bold', marginBottom: 6, lineHeight: 1.3, width: '100%', flexWrap: 'wrap' }}>{edu.degree}</Text>
+                      <Text style={{ ...styles.bulletText, marginBottom: 6, lineHeight: 1.3, width: '100%', flexWrap: 'wrap' }}>{edu.college}, {edu.location}</Text>
+                      <Text style={{ ...styles.bulletText, marginBottom: 6, lineHeight: 1.3, width: '100%', flexWrap: 'wrap' }}>{edu.start} - {edu.end} | CGPA: {edu.cgpa}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </Page>
+        </Document>
+      );
+  }
+};
 
 function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'templates' | 'builder'>('landing');
